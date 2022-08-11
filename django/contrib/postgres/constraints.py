@@ -203,12 +203,14 @@ class ExclusionConstraint(BaseConstraint):
         for idx, (expression, operator) in enumerate(self.expressions):
             if isinstance(expression, str):
                 expression = F(expression)
-            if exclude:
-                if isinstance(expression, F):
-                    if expression.name in exclude:
-                        return
-                else:
-                    for expr in expression.flatten():
+            if isinstance(expression, F):
+                if exclude and expression.name in exclude:
+                    return
+                rhs_expression = expression.replace_references(replacement_map)
+            else:
+                rhs_expression = expression.replace_references(replacement_map)
+                if exclude:
+                    for expr in rhs_expression.flatten():
                         if isinstance(expr, F) and expr.name in exclude:
                             return
             rhs_expression = expression.replace_expressions(replacements)
